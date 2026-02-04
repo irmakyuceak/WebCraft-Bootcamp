@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #header {
+            color: blue;
+        }
+
+    </style>
+</head>
+<body>
+    <h1 id="header">Hello, World</h1>
+    <p>Lorem ipsum dolor sit.</p>
+    <button id="btn">Tıkla</button>
+
+    <script>
+        let header = document.getElementById("header");
+        let button = document.getElementById("btn");
+        let paragraph = document.querySelector("p");
+
+        console.log(header.textContent); // Mevcut metni alır
+        header.textContent = "Merhaba, Dünya!"; // Metni değiştirir
+        paragraph.innerHTML = "<strong>Yeni içerik</strong>"; // HTML içeriğini değiştirir
+
+        header.style.color = "red"; // Stil değişikliği yapar
+        header.style.fontSize = "30px";
+        header.style.backgroundColor = "yellow";
+
+        let newParagraph = document.createElement("p"); // Yeni bir paragraf oluşturur
+        newParagraph.id = "newPara";
+        newParagraph.textContent = "Bu yeni bir paragraf.";
+        document.body.appendChild(newParagraph); // Yeni paragrafı body'ye ekler
+
+        document.body.removeChild(button); // Mevcut paragrafı kaldırır
+
+        let ul = document.createElement("ul"); // Yeni bir liste oluşturur
+
+        for (let i = 1; i <= 3; i++) {
+            let li = document.createElement("li");
+            li.textContent = "Liste öğesi " + i;
+            ul.appendChild(li);
+        }
+        document.body.appendChild(ul); // Listeyi body'ye ekler
+    </script>
+</body>
+</html>

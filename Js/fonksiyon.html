@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function greet() {
+            console.log("Hello, welcome to JavaScript functions!");
+        }
+        greet(); // Fonksiyonu çağırma
+
+        function greet(name) {
+            console.log("Hello, " + name + "!");
+        }
+        greet("Alice"); // Parametre ile fonksiyonu çağırma
+
+        function add(a, b) {
+            return a + b;
+        }
+        let sum = add(2, 3);
+        console.log(sum); // Çıktı: 5
+
+        let sayHello = function(name) {
+            return "Hello, " + name + "!";
+        }; 
+        sayHello("Bob");
+        console.log(sayHello("Bob")); // Çıktı: Hello, Bob!
+
+        let multiply = (x, y) => x * y;
+        console.log(multiply(4, 5)); // Çıktı: 20
+
+        (function() {
+            console.log("This is an IIFE!");
+        })(); // Immediately Invoked Function Expression
+    </script>
+</body>
+</html>
