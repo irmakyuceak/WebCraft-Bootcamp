@@ -170,6 +170,48 @@
             border-color: rgba(255,92,120,.45);
             background: rgba(255,92,120,.18);;
         }
+        .timer{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            background: rgba(124,92,255,.15);
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(124,92,255,.25);
+        }
+        .timer.warning{
+            color: #ffaa00;
+            background: rgba(255,170,0,.15);
+            border-color: rgba(255,170,0,.25);
+        }
+        .timer.danger{
+            color: var(--bad);
+            background: rgba(255,92,151,.15);
+            border-color: rgba(255,92,151,.25);
+            animation: pulse 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes pulse{
+            from { opacity: 1; }
+            to { opacity: 0.6; }
+        }
+        .bonus{
+            color: var(--good);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .time-bonus{
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(61,220,151,.15);
+            border: 1px solid rgba(61,220,151,.25);
+            border-radius: 8px;
+            color: var(--good);
+            font-size: 12px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -180,7 +222,10 @@
                 <div class="meta" id="meta">Soru 1 / 5</div>
 
             </div>
-            <div class="meta" id="scoreMeta">Puan: 0</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="timer" id="timer">⏱️ 00:00</div>
+                <div class="meta" id="scoreMeta">Puan: 0</div>
+            </div>
         </div>
         <div class="barWrap">
             <div class="bar">
@@ -240,9 +285,21 @@
         let index = 0;
         let score = 0;
         let answered = false;
+        
+        let startTime = 0;
+        let elapsedSeconds = 0;
+        let timerInterval = null;
+        
+        const BONUS_THRESHOLDS = [
+            { maxTime: 15, bonus: 50, label: "⚡ Işık Hızı! +50" },
+            { maxTime: 30, bonus: 30, label: "🚀 Süper Hızlı! +30" },
+            { maxTime: 45, bonus: 15, label: "✨ Hızlı! +15" },
+            { maxTime: 60, bonus: 5, label: "👍 İyi! +5" }
+        ];
 
         const metaEl = document.getElementById("meta");
         const scoreMetaEl = document.getElementById("scoreMeta");
+        const timerEl = document.getElementById("timer");
         const barFillEl = document.getElementById("barFill");
         const quizView = document.getElementById("quizView");
         const resultView = document.getElementById("resultView");
@@ -256,6 +313,43 @@
         const summaryEl = document.getElementById("summary");
         const badgeEl = document.getElementById("badge");
 
+        function startTimer() {
+            startTime = Date.now();
+            elapsedSeconds = 0;
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+        
+        function updateTimer() {
+            elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            timerEl.textContent = `⏱️ ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            timerEl.classList.remove('warning', 'danger');
+            if (elapsedSeconds >= 60) {
+                timerEl.classList.add('danger');
+            } else if (elapsedSeconds >= 45) {
+                timerEl.classList.add('warning');
+            }
+        }
+        
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        
+        function calculateBonus() {
+            for (const threshold of BONUS_THRESHOLDS) {
+                if (elapsedSeconds <= threshold.maxTime) {
+                    return { bonus: threshold.bonus, label: threshold.label };
+                }
+            }
+            return { bonus: 0, label: null };
+        }
+        
         function render(){
             const total = QUESTIONS.length;
             const item = QUESTIONS[index];
@@ -321,38 +415,57 @@
         }
 
         function finish(){
+            stopTimer();
             const total = QUESTIONS.length;
+            
+            const bonusResult = calculateBonus();
+            const bonusPoints = bonusResult.bonus;
+            const totalScore = score + bonusPoints;
+            
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-            barFillEl.style.widows = "100%";
+            barFillEl.style.width = "100%";
             quizView.style.display = "none";
             document.getElementById("bottomBar").style.display = "none";
             resultView.style.display = "block";
-            finalScoreEl.textContent = `${score} / ${total}`;
+            
+            let bonusHtml = '';
+            if (bonusPoints > 0) {
+                bonusHtml = `<div class="time-bonus">${bonusResult.label}</div>`;
+            }
+            
+            finalScoreEl.innerHTML = `${score} + ${bonusPoints} = ${totalScore} puan${bonusHtml}`;
 
             const pct = Math.round((score/total)*100);
 
-            let msg = "";
-            if(pct>=80) msg = "Harika";
-            else if(pct>=50) msg = "İdare Eder!";
-            else msg = "Berbat";
+            let msg = `Süre: ${timeStr}`;
+            if(pct>=80) msg += " - Harika! 🎉";
+            else if(pct>=50) msg += " - İdare Eder! 👍";
+            else msg += " - Daha çok çalışmalısın! 📚";
 
-            badgeEl.textContent = `Başarı: ½${pct}`;
+            badgeEl.textContent = `Başarı: %${pct}`;
             summaryEl.textContent = msg;
         }
 
         function restart(){
             index = 0;
             score = 0;
+            stopTimer();
 
             quizView.style.display = "block";
-            document.getElementById("BottomBar").style.display = "flex";
+            document.getElementById("bottomBar").style.display = "flex";
             resultView.style.display = "none";
+            timerEl.classList.remove('warning', 'danger');
+            startTimer();
             render();
         }
         nextBtn.addEventListener("click",next);
         skipBtn.addEventListener("click",skip);
         restartBtn.addEventListener("click",restart);
 
+        startTimer();
         render();
     </script>
 </body>
